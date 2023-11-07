@@ -7,13 +7,13 @@ import tensorflow as tf
 import keras
 from keras import layers
 
-DATA_DIR = os.path.join('/Users', 'aoifework', 'Documents', 'Research', 'wake_modeling', 'SOWFA data', 'Output_SOWFA_TotalControl')
+DATA_DIR = os.path.join('.', 'SOWFA data', 'Output_SOWFA_TotalControl')
 SIMULATION_TYPES = ['waked2a', 'waked2a.pcontrol', 'waked2a.ptcontrol', 'waked2a.ptlcontrol',
                  'waked4a', 'waked4a.pcontrol', 'waked4a.ptcontrol', 'waked4a.ptlcontrol']
 # INPUT_COLS = ['torqueGen', 'nacYaw', 'pitch', 'Vaxial', 'Vmag', 'Vradial', 'Vtangential']
 INPUT_COLS = ['torqueGen', 'pitch', 'Vaxial']
 LOAD_DATA = False
-CUT_TRANSIENTS = 200
+CUT_TRANSIENTS = 0
 
 if __name__ == '__main__':
     ## READ DATA
@@ -146,10 +146,14 @@ if __name__ == '__main__':
     training_df.reset_index(level=['WakeScenario', 'ControlType'], drop=True, inplace=True)
     
     # Allocate Training/Test/Validation Data
-    training_end_idx = int(0.9 * len(training_df.index))
-    test_end_idx = int(0.95 * len(training_df.index))
-    y = training_df['RotorAverageV']
-    X = training_df[['blade pitch angle (degrees)', 'generator torque (N-m)']]
+    # TODO include RotorAverageV and others at t in inputs
+    # TODO make labels RotorAverageV at t+1
+    training_end_idx = int(0.8 * len(training_df.index))
+    test_end_idx = int(0.9 * len(training_df.index))
+    # y = training_df.loc[training_df['Time(s)'] > training_df['Time(s)'].min(), 'RotorAverageV']
+    # X = training_df.loc[training_df['Time(s)'] < training_df['Time(s)'].max(), ['RotorAverageV', 'blade pitch angle (degrees)', 'generator torque (N-m)']]
+    y = training_df.loc[:, 'RotorAverageV']
+    X = training_df.loc[:, ['RotorAverageV', 'blade pitch angle (degrees)', 'generator torque (N-m)']]
     y_train = y.iloc[:training_end_idx]
     X_train = X.iloc[:training_end_idx]
     y_test = y.iloc[training_end_idx:test_end_idx]
@@ -170,14 +174,33 @@ if __name__ == '__main__':
     
     # Make model
     model = keras.Sequential()
+    # model.add(layers.Dense(units=len(X_train.columns), activation='relu'))
     model.add(layers.Embedding(input_dim=len(X_train.columns), output_dim=128))
-    model.add(layers.LSTM(256))
+    model.add(layers.LSTM(256)) #, dropout=0.1, recurrent_dropout=0.2))
+    # model.add(layers.Dropout(0.1))
     model.add(layers.Dense(len(y_train.columns)))
+    
+    # model = keras.Sequential([
+    #     # layers.Flatten(input_shape=(len(X_train.columns))),  ##(None,784)
+    #     # Dense implements the operation:
+    #     ## output = activation(dot(input, kernel) + bias)
+    #     ## The "kernel" are the weights matrix.
+    #     layers.Dense(128, activation='relu'),  # https://keras.io/api/layers/core_layers/dense/
+    #     ## The first value, 128 here, are the units.
+    #     ## units: Positive integer, dimensionality of the output space.
+    #     ## Here, x_train is (60000,28,28)
+    #     ## This Dense Layer output will be (None, 128)
+    #     ## https://www.tutorialspoint.com/keras/keras_dense_layer.htm
+    #     layers.LSTM(256),
+    #     layers.Dropout(0.2),  ##(None, 128)
+    #     layers.Dense(10, activation='softmax')  ## (None, 10)
+    # ])
+    
     model.summary()
     
     # Training configuration
     model.compile(
-        optimizer=keras.optimizers.legacy.RMSprop(), # Optimizer
+        optimizer=keras.optimizers.Adam(), # Optimizer
         loss=keras.losses.MeanSquaredError(), # Loss function
         metrics=[keras.metrics.MeanSquaredError()]
     )
@@ -186,13 +209,21 @@ if __name__ == '__main__':
     history = model.fit(
         X_train,
         y_train,
-        batch_size=100, # int(0.05 * len(X_train.index)),
+        batch_size=1200, # int(0.05 * len(X_train.index)),
         epochs=100,
         # We pass some validation for
         # monitoring validation loss and metrics
         # at the end of each epoch
         validation_data=(X_val, y_val),
     )
+    
+    # History and Accuracy
+    fig, axs = plt.subplots(1, 1)
+    axs.plot(history.history['mean_squared_error'], label='mean_squared_error')
+    axs.plot(history.history['val_mean_squared_error'], label='val_mean_squared_error')
+    axs.set(xlabel='Epoch', ylabel='MSE')
+    axs.legend(loc='lower right')
+    fig.show()
     
     # Evaluate the model on the test data using `evaluate`
     print("Evaluate on test data")
@@ -211,3 +242,5 @@ if __name__ == '__main__':
     axs.scatter(range(y_pred.shape[1]), y_pred[0, :], marker='o')
     axs.scatter(y_true.columns.to_numpy(), y_true.iloc[0].to_numpy(), marker='*')
     fig.show()
+    
+    model.save()
