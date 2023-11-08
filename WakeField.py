@@ -256,7 +256,7 @@ def generate_wake_ts(config, case_idx):
     print(f'Simulating case #{case_idx}')
     
     # Initialize
-    fi_sim = wfct.floris_interface.FlorisInterface(floris_sim_dir)
+    fi_sim = wfct.floris_interface.FlorisInterface(config["floris_input_file"])
     # fi_model = wfct.floris_interface.FlorisInterface(floris_model_dir)
     
     # define yaw angle time series
