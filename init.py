@@ -2,28 +2,29 @@ import os
 import sys
 import matplotlib as mpl
 
+FARM_LAYOUT = '9turb'
+
 if sys.platform == 'darwin':
 	PROJECT_DIR = '/Users/aoifework/Documents/Research/nn_wake_modeling/'
-	FLORIS_DIR = os.path.join(PROJECT_DIR, 'floris/floris_dynamic_special')
 	EPISODE_MAX_TIME = 300  # 1 hour
-	N_CASES = 2
+	N_CASES = 1
+	STORAGE_DIR = '/Users/aoifework/Documents/Research/nn_wake_modeling/'
 elif sys.platform == 'linux':
-	PROJECT_DIR = f'/scratch/alpine/aohe7145/nn_wake_modeling/'
-	FLORIS_DIR = os.path.join('/projects/aohe7145/projects/nn_wake_modeling', 'floris/floris_dynamic_special')
+	STORAGE_DIR = f'/scratch/alpine/aohe7145/nn_wake_modeling/'
+	PROJECT_DIR = os.path.join('/projects/aohe7145/projects/nn_wake_modeling')
 	EPISODE_MAX_TIME = 60 * 60 * 24  # 1 day
 	N_CASES = 500
 
-FARM_LAYOUT = '9turb'
-SIM_SAVE_DIR = os.path.join(FLORIS_DIR, f'{FARM_LAYOUT}_wake_field_simulations')
-DATA_DIR = os.path.join(PROJECT_DIR, 'data')
-FIG_DIR = os.path.join(PROJECT_DIR, 'figs')
-SCALARS_DIR = os.path.join(PROJECT_DIR, 'scalars')
-SIM_MODEL_FLORIS_DIR = os.path.join(FLORIS_DIR, f'{FARM_LAYOUT}_sim_model_floris_input.json')
-BASE_MODEL_FLORIS_DIR = os.path.join(FLORIS_DIR, f'{FARM_LAYOUT}_base_model_floris_input.json')
-TS_SAVE_DIR = os.path.join(PROJECT_DIR, f'{FARM_LAYOUT}_wake_field_tsdata')
-SAVE_DIR = os.path.join(PROJECT_DIR, 'data')
+DATA_SAVE_DIR = os.path.join(STORAGE_DIR, 'data')
+# TS_SAVE_DIR = os.path.join(STORAGE_DIR, f'{FARM_LAYOUT}_wake_field_tsdata')
+# SIM_SAVE_DIR = os.path.join(STORAGE_DIR, f'{FARM_LAYOUT}_wake_field_simulations')
+FIG_DIR = os.path.join(STORAGE_DIR, 'figs')
 
-for dir in [SAVE_DIR, FIG_DIR]:
+SIM_MODEL_FLORIS_DIR = os.path.join(PROJECT_DIR, f'floris/examples/inputs/emgauss.yaml')
+BASE_MODEL_FLORIS_DIR = os.path.join(PROJECT_DIR, f'floris/examples/inputs/{FARM_LAYOUT}_base_model_floris_input.json')
+
+
+for dir in [DATA_SAVE_DIR, FIG_DIR]:
 	if not os.path.exists(dir):
 		os.makedirs(dir)
 

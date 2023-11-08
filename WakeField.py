@@ -13,7 +13,7 @@ Need csv containing 'true' wake characteristics at each turbine (variables) at e
 from functools import partial
 import matplotlib.pyplot as plt
 import numpy as np
-from floridyn import tools as wfct # Incoming con
+from floris import tools as wfct
 import pandas as pd
 from multiprocessing import Pool
 # from CaseGen_General import CaseGen_General
@@ -24,12 +24,12 @@ from scipy.interpolate import interp1d, LinearNDInterpolator
 
 # **************************************** Initialization **************************************** #
 
-floris_sim_dir = f"./{FARM_LAYOUT}_sim_model_floris_input.json"
-# floris_sim_dir = f"./{FARM_LAYOUT}_emgauss.yaml"
+# floris_sim_dir = f"./{FARM_LAYOUT}_sim_model_floris_input.json"
+floris_sim_dir = f"./floris/examples/inputs/emgauss.yaml"
 # floris_model_dir = f"./{FARM_LAYOUT}_base_model_floris_input.json"
 
 # Initialize
-fi_sim = wfct.floris_interface.FlorisInterface(floris_sim_dir)
+fi_sim = wfct.floris_interface.FlorisInterface(WAKE_FIELD_CONFIG["floris_input_file"])
 # fi_model = wfct.floris_interface.FlorisInterface(floris_model_dir)
 
 # for fi_temp in [fi_sim, fi_model]:
@@ -53,18 +53,18 @@ class WakeField:
         )
         
         self.wind_farm = wfct.floris_interface.FlorisInterface(self.floris_input_file)
-        self.n_turbines = len(self.wind_farm.floris.farm.turbines)
+        self.n_turbines = self.wind_farm.floris.farm.n_turbines
         self.wind_farm.turbine_indices = list(range(self.n_turbines))
-        max_downstream_dist = max(fi_sim.floris.farm.turbine_map.coords[t].x1
+        max_downstream_dist = max(self.wind_farm.floris.farm.coordinates[t].x1
                                   for t in range(self.n_turbines))
-        min_downstream_dist = min(fi_sim.floris.farm.turbine_map.coords[t].x1
+        min_downstream_dist = min(self.wind_farm.floris.farm.coordinates[t].x1
                                   for t in range(self.n_turbines))
         # exclude most downstream turbine
         upstream_turbine_indices = [t for t in range(self.n_turbines) if
-                                    fi_sim.floris.farm.turbine_map.coords[t].x1 < max_downstream_dist]
+                                    self.wind_farm.floris.farm.coordinates[t].x1 < max_downstream_dist]
         n_upstream_turbines = len(upstream_turbine_indices)
         self.downstream_turbine_indices = [t for t in range(self.n_turbines) if
-                                      fi_sim.floris.farm.turbine_map.coords[t].x1 > min_downstream_dist]
+                                      self.wind_farm.floris.farm.coordinates[t].x1 > min_downstream_dist]
         self.n_downstream_turbines = len(self.downstream_turbine_indices)
         
         # set wind speed/dir change probabilities and variability parameters
@@ -261,18 +261,23 @@ def generate_wake_ts(config, case_idx):
     
     # define yaw angle time series
     yaw_angles = np.array(wf._generate_yaw_angle_ts())
-    ai_factors = np.array(wf._generate_ai_factor_ts())
+    # ai_factors = np.array(wf._generate_ai_factor_ts())
     freestream_wind_speeds = wf._generate_freestream_wind_speed_ts()
     freestream_wind_dirs = wf._generate_freestream_wind_dir_ts()
-    fi_sim.reinitialize_flow_field(wind_speed=freestream_wind_speeds[0], wind_direction=freestream_wind_dirs[0])
-    fi_sim.calculate_wake(yaw_angles=yaw_angles[0, :], axial_induction=ai_factors[0, :])
+    fi_sim.reinitialize(wind_speeds=[freestream_wind_speeds[0]], wind_directions=[freestream_wind_dirs[0]])
+    # fi_sim.calculate_wake(yaw_angles=yaw_angles[0, :], axial_induction=ai_factors[0, :])
+    fi_sim.calculate_wake(yaw_angles=yaw_angles[0, :][np.newaxis, np.newaxis, :])
     # fi_model.reinitialize_flow_field(wind_speed=freestream_wind_speeds[0], wind_direction=freestream_wind_dirs[0])
     # fi_model.calculate_wake(yaw_angles=yaw_angles[0, :], axial_induction=ai_factors[0, :])
     
     # lists that will be needed for visualizationsd
-    turbine_wind_speeds_sim = [[] for t in range(wf.n_turbines)]
-    turbine_wind_speeds_model = [[] for t in range(wf.n_turbines)]
+    turbine_wind_speeds_sim = []
+    # turbine_wind_speeds_model = [[] for t in range(wf.n_turbines)]
+    # TODO create floris instance for each turbine with stochastic 'freestream' wind speed and direction,
+    #  use calculated wind speed at turbine immediately downstream as 'freestream' wind speed for downstream turbine?
     # turbine_wind_dirs_sim = [[] for t in range(wf.n_turbines)]
+    ai_factors = []
+    
     # turbine_turb_intensities_sim = [[] for t in range(wf.n_turbines)]
     # turbine_wind_dirs_model = [[] for t in range(wf.n_turbines)]
     # turbine_turb_intensities_model = [[] for t in range(wf.n_turbines)]
@@ -288,18 +293,17 @@ def generate_wake_ts(config, case_idx):
         if sim_time % 100 == 0:
             print("Simulation Time:", sim_time, "For Case:", case_idx)
         
-        fi_sim.floris.farm.flow_field.mean_wind_speed = freestream_wind_speeds[tt]
+        # fi_sim.floris.farm.flow_field.mean_wind_speed = freestream_wind_speeds[tt]
         # fi_model.floris.farm.flow_field.mean_wind_speed = freestream_wind_speeds[tt]
         
-        fi_sim.reinitialize_flow_field(wind_speed=freestream_wind_speeds[tt],
-                                       wind_direction=freestream_wind_dirs[tt],
-                                       sim_time=sim_time)
+        fi_sim.reinitialize(wind_speeds=[freestream_wind_speeds[tt]],
+                                       wind_directions=[freestream_wind_dirs[tt]])
         # fi_model.reinitialize_flow_field(wind_speed=freestream_wind_speeds[tt],
         #                                  wind_direction=freestream_wind_dirs[tt],
         #                                  sim_time=sim_time)
         
         # calculate dynamic wake computationally
-        fi_sim.calculate_wake(yaw_angles=yaw_angles[tt], axial_induction=ai_factors[tt], sim_time=sim_time)
+        fi_sim.calculate_wake(yaw_angles=yaw_angles[tt, :][np.newaxis, np.newaxis, :])
         # fi_model.calculate_wake(yaw_angles=yaw_angles[tt], axial_induction=ai_factors[tt], sim_time=sim_time)
         
         if case_idx == 0 and False:
@@ -313,10 +317,12 @@ def generate_wake_ts(config, case_idx):
             cross_planes.append(fi_sim.get_cross_plane(y_resolution=100, z_resolution=100,
                                                        x_loc=630.0))  # vertical plane parallel to turbine disc plane
         
-        for t in range(wf.n_turbines):
-            turbine_wind_speeds_sim[t].append(fi_sim.floris.farm.turbines[t].average_velocity)
+        # for t in range(wf.n_turbines):
+            # QUESTION effective vs average velocities? former takes yaw misalignment into consideration?
+        turbine_wind_speeds_sim.append(fi_sim.turbine_effective_velocities[0, 0, :])
             # turbine_wind_speeds_model[t].append(fi_model.floris.farm.turbines[t].average_velocity)
             # turbine_wind_dirs_sim[t].append(fi_sim.floris.farm.wind_map.turbine_wind_direction[t])
+        ai_factors.append(fi_sim.get_turbine_ais()[0, 0, :])
             # turbine_wind_dirs_model[t].append(fi_model.floris.farm.wind_map.turbine_wind_direction[t])
             # turbine_turb_intensities_sim[t].append(fi_sim.floris.farm.turbulence_intensity[t])
             # turbine_turb_intensities_model[t].append(fi_model.floris.farm.turbulence_intensity[t])
@@ -332,10 +338,11 @@ def generate_wake_ts(config, case_idx):
         # NOTE: at this point, can also use measure other quantities like average velocity at a turbine, etc.
         # true_powers.append(sum([turbine.power for turbine in fi.floris.farm.turbines])/1e6)
     
-    turbine_wind_speeds_sim = np.array(turbine_wind_speeds_sim).T
-    turbine_wind_speeds_model = np.array(turbine_wind_speeds_model).T
-    yaw_angles = np.array(yaw_angles)
-    ai_factors = np.array(ai_factors)
+    turbine_wind_speeds_sim = np.vstack(turbine_wind_speeds_sim)
+    # turbine_wind_dirs_sim = np.array(turbine_wind_dirs_sim).T
+    # turbine_wind_speeds_model = np.array(turbine_wind_speeds_model).T
+    # yaw_angles = np.vstack(yaw_angles)
+    ai_factors = np.vstack(ai_factors)
     
     # turbine_wind_dirs_sim = np.array(turbine_wind_dirs_sim).T
     # turbine_wind_dirs_model = np.array(turbine_wind_dirs_model).T
@@ -367,7 +374,7 @@ def generate_wake_ts(config, case_idx):
     wake_field_df = pd.DataFrame(data=wake_field_data)
     
     # export case data to csv
-    wake_field_df.to_csv(os.path.join(SAVE_DIR, f'case_{case_idx}.csv'))
+    wake_field_df.to_csv(os.path.join(DATA_SAVE_DIR, f'case_{case_idx}.csv'))
     wf.df = wake_field_df
     wf.horizontal_planes = horizontal_planes
     wf.y_planes = y_planes

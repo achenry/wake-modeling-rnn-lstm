@@ -1,7 +1,8 @@
 .idea/
-./data
-./figs
-./SOWFA data
+./data/
+./figs/
+__pycache__/
+SOWFA data/
 *.csv
 *.csv
 *.png
@@ -15,4 +16,4 @@ scalars/
 ./floris/floris_dynamic_special/9turb_wake_field_simulations/
 ./floris/floris_dynamic_special/2turb_wake_field_simulations/
 figs/
-
+.DS_Store

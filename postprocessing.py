@@ -3,7 +3,7 @@ import numpy as np
 from _collections import defaultdict
 from init import WIND_SPEED_RANGE
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from floridyn.tools.visualization import plot_turbines_with_fi, visualize_cut_plane
+from floris.tools.visualization import plot_turbines_with_fi, visualize_cut_plane
 import pandas as pd
 import os
 from string import ascii_uppercase
