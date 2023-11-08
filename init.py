@@ -23,7 +23,7 @@ DATA_SAVE_DIR = os.path.join(STORAGE_DIR, 'data')
 FIG_DIR = os.path.join(STORAGE_DIR, 'figs')
 
 SIM_MODEL_FLORIS_DIR = os.path.join(FLORIS_DIR, f'examples/inputs/emgauss.yaml')
-BASE_MODEL_FLORIS_DIR = os.path.join(FLORIS_DIR, f'examples/inputs/{FARM_LAYOUT}_base_model_floris_input.json')
+# BASE_MODEL_FLORIS_DIR = os.path.join(FLORIS_DIR, f'examples/inputs/{FARM_LAYOUT}_base_model_floris_input.json')
 
 
 for dir in [DATA_SAVE_DIR, FIG_DIR]:

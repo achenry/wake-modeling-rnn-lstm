@@ -9,18 +9,14 @@ import keras
 from keras import layers
 
 from helpers import generate_model
-
-FARM_LAYOUT = '9turb'
-FLORIS_DIR = os.path.join('.', 'floris', 'floris_dynamic_special')
-SIMULATION_MODEL_FLORIS_DIR = os.path.join(FLORIS_DIR, f'{FARM_LAYOUT}_sim_model_floris_input.json')
-BASE_MODEL_FLORIS_DIR = os.path.join(FLORIS_DIR, f'{FARM_LAYOUT}_base_model_floris_input.json')
+from init import *
 
 def main():
 	## LOAD BASE AND SIMULATION FLORIS WIND FARM MODELS
 	
 	# Fetch wind farm system layout information, floris interface used to simulate 'true' wind farm
-	simulation_fi = generate_model(SIMULATION_MODEL_FLORIS_DIR)
-	model_fi = generate_model(BASE_MODEL_FLORIS_DIR)
+	simulation_fi = generate_model(WAKE_FIELD_CONFIG["floris_input_file"])
+	# model_fi = generate_model(BASE_MODEL_FLORIS_DIR)
 
 	## GENERATE/LOAD TIME-SERIES OF FREE-STREAM WIND-SPEED, WIND DIRECTION, TURBINE AXIAL INDUCTION FACTORS AND YAW ANGLES
 	# use array.array
