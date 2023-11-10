@@ -7,8 +7,8 @@ FARM_LAYOUT = '9turb'
 if sys.platform == 'darwin':
 	PROJECT_DIR = '/Users/aoifework/Documents/Research/nn_wake_modeling/'
 	FLORIS_DIR = '/Users/aoifework/Documents/toolboxes/floris'
-	EPISODE_MAX_TIME = 300  # 1 hour
-	N_CASES = 1
+	EPISODE_MAX_TIME = 60 * 60 * 24  # 1 day
+	N_CASES = 10
 	STORAGE_DIR = '/Users/aoifework/Documents/Research/nn_wake_modeling/'
 elif sys.platform == 'linux':
 	STORAGE_DIR = f'/scratch/alpine/aohe7145/nn_wake_modeling/'

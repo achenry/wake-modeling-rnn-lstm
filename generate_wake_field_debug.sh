@@ -1,9 +1,9 @@
 #!/bin/bash
-#SBATCH --nodes=24
-#SBATCH --time=08:00:00
-#SBATCH --ntasks=500
+#SBATCH --nodes=2
+#SBATCH --time=01:00:00
+#SBATCH --ntasks=10
 #SBATCH --job-name=generate_wake_field
-#SBATCH --output=generate_wake_field.%j.out
+#SBATCH --output=generate_wake_field_debug.%j.out
 
 module purge
 # module load anaconda

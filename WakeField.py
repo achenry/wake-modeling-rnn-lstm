@@ -24,10 +24,6 @@ from scipy.interpolate import interp1d, LinearNDInterpolator
 
 # **************************************** Initialization **************************************** #
 
-# floris_sim_dir = f"./{FARM_LAYOUT}_sim_model_floris_input.json"
-floris_sim_dir = f"./floris/examples/inputs/emgauss.yaml"
-# floris_model_dir = f"./{FARM_LAYOUT}_base_model_floris_input.json"
-
 # Initialize
 fi_sim = wfct.floris_interface.FlorisInterface(WAKE_FIELD_CONFIG["floris_input_file"])
 # fi_model = wfct.floris_interface.FlorisInterface(floris_model_dir)
@@ -203,7 +199,7 @@ def plot_ts(wf):
         # if case_idx == 0 or n_cases < 5:
         
     time = wf.df['Time']
-    # freestream_wind_speed = wf.df['FreestreamWindSpeed'].to_numpy()
+    freestream_wind_speed = wf.df['FreestreamWindSpeed'].to_numpy()
     freestream_wind_dir = wf.df['FreestreamWindDir'].to_numpy()
     ds_turbine_wind_speeds = np.hstack(
         [wf.df[f'TurbineWindSpeedsSimulation_{t}'].to_numpy()[:, np.newaxis]
@@ -222,25 +218,25 @@ def plot_ts(wf):
     #     [wf.df[f'TurbineWindSpeedsModel_{t}'].to_numpy()[:, np.newaxis]
     #      for t in wf.downstream_turbine_indices])
     
-    # ax_ts[0].plot(time, freestream_wind_speed)
-    ax_ts[0].plot(time, freestream_wind_dir)
+    ax_ts[0].plot(time, freestream_wind_speed)
+    ax_ts[1].plot(time, freestream_wind_dir)
     
     for t_idx, t in enumerate(wf.downstream_turbine_indices):
-        ax_ts[1].plot(time, ds_turbine_wind_speeds[:, t_idx], label=f'DS Turbine {t}',
+        ax_ts[2].plot(time, ds_turbine_wind_speeds[:, t_idx], label=f'DS Turbine {t}',
                              c=colors[t_idx])
         # ax_ts[2].plot(time, ds_turbine_wind_dirs[:, t_idx], label=f'DS Turbine {t}',
         #                  c=colors[t_idx])
-        ax_ts[2].plot(time, yaw_angles[:, t_idx], label=f'Turbine {t}',
+        ax_ts[3].plot(time, yaw_angles[:, t_idx], label=f'Turbine {t}',
                          c=colors[t_idx])
-        ax_ts[3].plot(time, ai_factors[:, t_idx], label=f'Turbine {t}',
+        ax_ts[4].plot(time, ai_factors[:, t_idx], label=f'Turbine {t}',
                          c=colors[t_idx])
     
-    # ax_ts[0].set(title='Freestream Wind Speed [m/s]')
-    ax_ts[0].set(title='Freestream Wind Direction [deg]')
-    ax_ts[1].set(title='Turbine Effective Rotor Wind Speed [m/s]')
+    ax_ts[0].set(title='Freestream Wind Speed [m/s]')
+    ax_ts[1].set(title='Freestream Wind Direction [deg]')
+    ax_ts[2].set(title='Turbine Effective Rotor Wind Speed [m/s]')
     # ax_ts[3].set(title='Turbine Wind Direction [deg]')
-    ax_ts[2].set(title='Turbine Yaw Angle [deg]')
-    ax_ts[3].set(title='Turbine AI Factor [-]')
+    ax_ts[3].set(title='Turbine Yaw Angle [deg]')
+    ax_ts[4].set(title='Turbine AI Factor [-]')
 
         # ax_ts[case_idx].plot(time, ds_turbine_wind_speeds_model[:, t_idx], label=f'DS Turbine {t} Case {case_idx}',
         #                      linestyle='--', c=colors[t_idx])
@@ -354,9 +350,10 @@ def generate_wake_ts(config, case_idx):
     # save case data as dataframe
     wake_field_data = {
         'Time': time,
-        # 'FreestreamWindSpeed': freestream_wind_speeds,
+        'FreestreamWindSpeed': freestream_wind_speeds,
         'FreestreamWindDir': freestream_wind_dirs
     }
+    
     for t in range(wf.n_turbines):
         wake_field_data = {**wake_field_data,
                            f'TurbineWindSpeedsSimulation_{t}': turbine_wind_speeds_sim[:, t],

@@ -1,4 +1,4 @@
-from floris.floris_dynamic_special.floridyn.tools.floris_interface import FlorisInterface as DynFlorisInterface
+from floris.tools.floris_interface import FlorisInterface as DynFlorisInterface
 
 def generate_model(floris_dir):
 	## GET SYSTEM INFORMATION
