@@ -7,7 +7,8 @@
 
 module purge
 # module load anaconda
-source /curc/sw/anaconda3/2020.11/etc/profile.d/conda.sh
+# source /curc/sw/anaconda3/2020.11/etc/profile.d/conda.sh
+module load anaconda
 conda activate rl_wf_env_rocm
 
 cd /projects/aohe7145/projects/nn_wake_modeling/
