@@ -1,6 +1,6 @@
 # %matplotlib inline
 '''
-Generate 'true' wake field data for use in GP learning procedure
+Generate 'true' wake field raw_data for use in GP learning procedure
 Inputs: Yaw Angles, Freestream Wind Velocity, Freestream Wind Direction, Turbine Topology
 Need csv containing 'true' wake characteristics at each turbine (variables) at each time-step (rows).
 '''
@@ -202,10 +202,10 @@ def plot_ts(wf):
     freestream_wind_speed = wf.df['FreestreamWindSpeed'].to_numpy()
     freestream_wind_dir = wf.df['FreestreamWindDir'].to_numpy()
     ds_turbine_wind_speeds = np.hstack(
-        [wf.df[f'TurbineWindSpeedsSimulation_{t}'].to_numpy()[:, np.newaxis]
+        [wf.df[f'TurbineWindSpeeds_{t}'].to_numpy()[:, np.newaxis]
          for t in wf.downstream_turbine_indices])
     # ds_turbine_wind_dirs = np.hstack(
-    #     [wf.df[f'TurbineWindDirsSimulation_{t}'].to_numpy()[:, np.newaxis]
+    #     [wf.df[f'TurbineWindDirs_{t}'].to_numpy()[:, np.newaxis]
     #      for t in wf.downstream_turbine_indices])
     yaw_angles = np.hstack(
         [wf.df[f'YawAngles_{t}'].to_numpy()[:, np.newaxis]
@@ -347,7 +347,7 @@ def generate_wake_ts(config, case_idx):
     # turbine_powers_sim = np.array(turbine_powers_sim).T
     # turbine_powers_model = np.array(turbine_powers_model).T
     
-    # save case data as dataframe
+    # save case raw_data as dataframe
     wake_field_data = {
         'Time': time,
         'FreestreamWindSpeed': freestream_wind_speeds,
@@ -356,13 +356,13 @@ def generate_wake_ts(config, case_idx):
     
     for t in range(wf.n_turbines):
         wake_field_data = {**wake_field_data,
-                           f'TurbineWindSpeedsSimulation_{t}': turbine_wind_speeds_sim[:, t],
+                           f'TurbineWindSpeeds_{t}': turbine_wind_speeds_sim[:, t],
                            # f'TurbineWindSpeedsModel_{t}': turbine_wind_speeds_model[:, t],
-                           # f'TurbineWindDirsSimulation_{t}': turbine_wind_dirs_sim[:, t],
+                           # f'TurbineWindDirs_{t}': turbine_wind_dirs_sim[:, t],
                            # f'TurbineWindDirsModel_{t}': turbine_wind_dirs_model[:, t],
-                           # f'TurbineTISimulation_{t}': turbine_turb_intensities_sim[:, t],
+                           # f'TurbineTI_{t}': turbine_turb_intensities_sim[:, t],
                            # f'TurbineTIModel_{t}': turbine_turb_intensities_model[:, t],
-                           # f'TurbinePowersSimulation_{t}': turbine_powers_sim[:, t],
+                           # f'TurbinePowers_{t}': turbine_powers_sim[:, t],
                            # f'TurbinePowersModel_{t}': turbine_powers_model[:, t],
                            f'YawAngles_{t}': yaw_angles[:, t],
                            f'AxIndFactors_{t}': ai_factors[:, t]
@@ -370,7 +370,7 @@ def generate_wake_ts(config, case_idx):
     
     wake_field_df = pd.DataFrame(data=wake_field_data)
     
-    # export case data to csv
+    # export case raw_data to csv
     wake_field_df.to_csv(os.path.join(DATA_SAVE_DIR, f'case_{case_idx}.csv'))
     wf.df = wake_field_df
     wf.horizontal_planes = horizontal_planes
