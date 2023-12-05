@@ -17,7 +17,7 @@ elif sys.platform == 'linux':
 	EPISODE_MAX_TIME = 60 * 60 * 24  # 1 day
 	N_CASES = 500
 
-DATA_SAVE_DIR = os.path.join(STORAGE_DIR, 'data')
+DATA_SAVE_DIR = os.path.join(STORAGE_DIR, 'raw_data')
 # TS_SAVE_DIR = os.path.join(STORAGE_DIR, f'{FARM_LAYOUT}_wake_field_tsdata')
 # SIM_SAVE_DIR = os.path.join(STORAGE_DIR, f'{FARM_LAYOUT}_wake_field_simulations')
 FIG_DIR = os.path.join(STORAGE_DIR, 'figs')
