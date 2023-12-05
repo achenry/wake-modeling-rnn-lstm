@@ -205,7 +205,7 @@ if __name__ == '__main__':
         metrics=[keras.metrics.MeanSquaredError()]
     )
     
-    print("Fit model on training data")
+    print("Fit model on training raw_data")
     history = model.fit(
         X_train,
         y_train,
@@ -225,13 +225,13 @@ if __name__ == '__main__':
     axs.legend(loc='lower right')
     fig.show()
     
-    # Evaluate the model on the test data using `evaluate`
-    print("Evaluate on test data")
+    # Evaluate the model on the test raw_data using `evaluate`
+    print("Evaluate on test raw_data")
     results = model.evaluate(X_test, y_test, batch_size=128)
     print("test loss, test acc:", results)
     
     # Generate predictions (probabilities -- the output of the last layer)
-    # on new data using `predict`
+    # on new raw_data using `predict`
     print("Generate predictions for 3 samples")
     y_pred = model.predict(X_test.iloc[:3])
     y_pred = y_pred * (y_rng[1] - y_rng[0]).to_numpy() + y_rng[0].to_numpy()
